@@ -1,37 +1,23 @@
-#
-# RethinkDB Dockerfile
-#
-# https://github.com/dockerfile/rethinkdb
-#
+FROM debian:jessie
 
-# Pull base image.
-FROM ubuntu
+MAINTAINER Stuart P. Bentley <stuart@testtrack4.com>
 
-# Install RethinkDB.
-RUN \
-  apt-get install wget && \
-  echo "deb http://download.rethinkdb.com/apt `lsb_release -cs` main" > /etc/apt/sources.list.d/rethinkdb.list && \
-  wget -O- http://download.rethinkdb.com/apt/pubkey.gpg | apt-key add - && \
-  apt-get update && \
-  apt-get install -y rethinkdb python-pip && \
-  rm -rf /var/lib/apt/lists/*
+# Add the RethinkDB repository and public key
+# "RethinkDB Packaging <packaging@rethinkdb.com>" http://download.rethinkdb.com/apt/pubkey.gpg
+RUN apt-key adv --keyserver pgp.mit.edu --recv-keys 1614552E5765227AEC39EFCFA7E00EF33A8F2399
+RUN echo "deb http://download.rethinkdb.com/apt jessie main" > /etc/apt/sources.list.d/rethinkdb.list
 
-# Install python driver for rethinkdb
-RUN pip install rethinkdb
+ENV RETHINKDB_PACKAGE_VERSION 1.15.1~0jessie
 
-# Define mountable directories.
+RUN apt-get update \
+	&& apt-get install -y rethinkdb=$RETHINKDB_PACKAGE_VERSION \
+	&& rm -rf /var/lib/apt/lists/*
+
 VOLUME ["/data"]
 
-# Define working directory.
 WORKDIR /data
 
-# Define default command.
 CMD ["rethinkdb", "--bind", "all"]
 
-# Expose ports.
-#   - 8080: web UI
-#   - 28015: process
-#   - 29015: cluster
-# EXPOSE 8080
-# EXPOSE 28015
-# EXPOSE 29015
+#   process cluster webui
+# EXPOSE 28015 29015 8080
